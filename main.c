@@ -1,6 +1,8 @@
 /**
  * @file
  * @author Erwin Meza Vega <emezav@unicauca.edu.co>
+ * @author Miguel Angel Calambas <mangelcvivas@unicauca.edu.co>abort
+ * @author Esteban Santiago Escadon Causaya <estebanescandon@unicauca.edu.co>
  * @brief Listar particiones de discos duros MBR/GPT
  * @copyright MIT License
 */
@@ -42,12 +44,22 @@ void ascii_dump(char * buf, size_t size);
  */
 int read_lba_sector(char * disk, unsigned long long lba, char buf[SECTOR_SIZE]);
 
+/**
+ * @brief Prints usage information
+ */
+void usage();
 
 int main(int argc, char *argv[]) {
 
-	char * disk;
 	// 1. Validar los argumentos de l inea de comandos
+	if ( argc != 2 ){
+		fprintf(stderr, "Invalid arguments\n", argv[0]);
+		usage();
+		exit(EXIT_FAILURE);
+	}
+
 	// 2. Leer el primer sector sector del disco especificado
+	char * disk;
 	mbr boot_record;
 	disk = argv[1];
 	// 2.1 Si la lectura falla, imprimir error y terminar
@@ -55,11 +67,18 @@ int main(int argc, char *argv[]) {
 		fprintf(stderr, "Unable to open device %s\n", disk);
 		exit(EXIT_FAILURE); // o continue si se usa estructura repetitiva
 	}
-	// PRE: Se pudo leer el priemr secto del disco
+	// PRE: Se pudo leer el primer secto del disco
 	// 3. Imprimmir la tabla de particiones del MBR leido!
-	printf("size of mbr %d\n", sizeof(mbr));
-	hex_dump((char*)&boot_record, sizeof(mbr));
+	unsigned int flag_is_mbr = is_mbr(&boot_record);
 
+	if( flag_is_mbr )
+		printf("Disk initialized as MBR\n");
+	else 
+		printf("Disk initialized as GPT\n");
+
+	print_mbr_partition_descriptor(boot_record.partition_table);
+
+	hex_dump((char*)&boot_record, sizeof(mbr));
 	// 4. Si el esquema de paricionado es MBR: terminado
 	// PRE: El esquema de particionado es GPT
 	// 5 . Imprimir la tabla de particiones GPT
@@ -118,5 +137,7 @@ void hex_dump(char * buf, size_t size) {
 	}
 }
 
-
+void usage(){
+	printf("Usage: \n diskinfo <disk>\n");
+}
 

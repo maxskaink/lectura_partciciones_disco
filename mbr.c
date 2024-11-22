@@ -1,5 +1,5 @@
 #include <string.h>
-
+#include <stdio.h>
 #include "mbr.h"
 
 const char * mbr_partition_types[256] = {
@@ -263,10 +263,35 @@ const char * mbr_partition_types[256] = {
 
 int is_mbr(mbr * boot_record) {
 	/* TODO verificar si el bootsector leido es valido. */
-	return 0;
+	if( boot_record->partition_table[0].partition_type == MBR_TYPE_GPT)
+		return 0;
+	return 1;
 }
 
 
 void mbr_partition_type(unsigned char type, char buf[TYPE_NAME_LEN]) {
 	/* TODO rellenar el en buffer el nombre textual del tipo de particion */
+	snprintf(buf, TYPE_NAME_LEN, "%s", mbr_partition_types[type]);
+}
+
+void print_mbr_partition_descriptor(mbr_partition_descriptor * partition_descriptor){
+	/* TODO imprimir la informacion de un descriptor de particion MBR */
+	printf("MBR Partition Table\n");
+	printf("Start LBA    End LBA     Type\n");
+	printf("------------ ----------- -----------------\n");
+	for (size_t i = 0; i < 4; i++)
+	{
+        if (partition_descriptor[i].size_in_LBA == 0)
+            continue; // Saltar particiones no usadas
+
+        unsigned int start_lba = partition_descriptor[i].starting_LBA;
+        unsigned int end_lba = start_lba + partition_descriptor[i].size_in_LBA - 1;
+
+		char type[TYPE_NAME_LEN];
+		mbr_partition_type(partition_descriptor[i].partition_type, type);
+
+	    printf("%12u %11u %s\n", start_lba, end_lba, type);
+
+	}
+	printf("------------ ----------- -----------------\n");	
 }

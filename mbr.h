@@ -22,8 +22,12 @@
 typedef struct {
 	/* TODO definir los atributos para la estructura de un descriptor de particion MBR */
 	/* La suma completa de bytes de esta estructura debe ser 16 */
-	unsigned char flag_boot;
-	unsigned char reserved[15];
+	unsigned char flag_boot; /**Boot indicator */
+	unsigned char starting_CHS_values[3]; /**Starting CHS values */
+	unsigned char partition_type; /**Partition type */
+	unsigned char ending_CHS_values[3]; /**Ending CHS values */
+	unsigned int starting_LBA; /**Starting LBA */
+	unsigned int size_in_LBA; /**Size in LBA */
 }__attribute__((packed)) mbr_partition_descriptor;
 
 /** @brief Master Boot Record. */
@@ -39,7 +43,7 @@ typedef struct {
 /**
 * @brief Checks if a bootsector is a MBR.
 * @param boot_record Bootsector read in memory]
-* @return 1 If the bootsector is a Protective MBR, 0 otherwise.
+* @return 0 If the bootsector is a Protective MBR, 1 otherwise.
 */
 int is_mbr(mbr * boot_record);
 
@@ -49,6 +53,12 @@ int is_mbr(mbr * boot_record);
 * @param buf String buffer to store the text description
 */
 void mbr_partition_type(unsigned char type, char buf[TYPE_NAME_LEN]);
+
+/**
+ * @brief Print the MBR partition descriptor
+ * @param partition_descriptor The partition descriptor to print
+ */
+void print_mbr_partition_descriptor(mbr_partition_descriptor * partition_descriptor);
 
 
 #endif
