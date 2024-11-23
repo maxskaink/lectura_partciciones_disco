@@ -10,6 +10,8 @@
 
 #include "mbr.h"
 
+
+#define GPT_HEADER_SIGNATURE 0x5452415020494645
 /**
 * @brief GUID
 * @see https://uefi.org/specs/UEFI/2.10/Apx_A_GUID_and_Time_Formats.html
@@ -25,7 +27,21 @@ typedef struct {
 
 /** @brief GPT Partition Table Header. */
 typedef struct {
-	/* TODO definir los atributos del encabezado de la tabla GPT */
+	unsigned long long signature; 			 /*!< GPT signature */
+	unsigned int revision; 					 /*!< Revision */
+	unsigned int header_size; 				 /*!< Header size */
+	unsigned int header_crc32; 				 /*!< CRC32 of the header */
+	unsigned int reserved; 					 /*!< Reserved */
+	unsigned long long my_lba; 				 /*!< LBA of the header */
+	unsigned long long alternate_lba; 		 /*!< LBA of the alternate header */
+	unsigned long long first_usable_lba;	 /*!< First usable LBA for partitions */
+	unsigned long long last_usable_lba; 	 /*!< Last usable LBA for partitions */
+	guid disk_guid; 						 /*!< Disk GUID */
+	unsigned long long partition_entry_lba;  /*!< LBA of the partition table */
+	unsigned int num_partition_entries; 	 /*!< Number of partition entries */
+	unsigned int size_partition_entry; 		 /*!< Size of a partition entry */
+	unsigned int partition_entry_array_crc32;/*!< CRC32 of the partition entry array */
+	unsigned char content[420]; 			 /*!< Reserved */
 }__attribute__((packed)) gpt_header;
 
 /**
@@ -33,6 +49,13 @@ typedef struct {
 */
 typedef struct {
 	/* TODO definir los atributos de un descriptor de particion GPT */
+	guid partition_type_guid; /*!< Partition type GUID */
+	unsigned char unique_partition_guid[16]; /*!< Unique partition GUID */
+	unsigned long long starting_lba; /*!< Starting LBA */
+	unsigned long long ending_lba; /*!< Ending LBA */
+	unsigned long long attributes; /*!< Attributes */
+	unsigned char partition_name[72]; /*!< Partition name */
+	/*!< Reserved 0 bytes */
 }__attribute__((packed)) gpt_partition_descriptor;
 
 /**
@@ -86,5 +109,10 @@ int is_null_descriptor(gpt_partition_descriptor * desc);
 * @return New string with the text representation of the GUID
 */
 char * guid_to_str(guid * buf);
+
+/**
+ * @brief Prints a GPT header
+ */
+void print_gpt_header(gpt_header * desc);
 
 #endif

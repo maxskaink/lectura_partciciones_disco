@@ -262,7 +262,7 @@ const char * mbr_partition_types[256] = {
 };
 
 int is_mbr(mbr * boot_record) {
-	/* TODO verificar si el bootsector leido es valido. */
+	/* TODO verificar si la verificacion es suficiente. */
 	if( boot_record->partition_table[0].partition_type == MBR_TYPE_GPT)
 		return 0;
 	return 1;
@@ -270,12 +270,12 @@ int is_mbr(mbr * boot_record) {
 
 
 void mbr_partition_type(unsigned char type, char buf[TYPE_NAME_LEN]) {
-	/* TODO rellenar el en buffer el nombre textual del tipo de particion */
+	/* TODO verificar que sea correcta la asignacion */
 	snprintf(buf, TYPE_NAME_LEN, "%s", mbr_partition_types[type]);
 }
 
 void print_mbr_partition_descriptor(mbr_partition_descriptor * partition_descriptor){
-	/* TODO imprimir la informacion de un descriptor de particion MBR */
+	/* TODO Mirar si es necesario tener en cuenta la informacion CHS */
 	printf("MBR Partition Table\n");
 	printf("Start LBA    End LBA     Type\n");
 	printf("------------ ----------- -----------------\n");

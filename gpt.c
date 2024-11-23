@@ -7,7 +7,18 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 #include "gpt.h"
+
+/**
+ * @brief Parse to Uppercase
+ */
+void to_uppercase(char *str) {
+    for (; *str; ++str) {
+        *str = toupper((unsigned char)*str);
+    }
+}
+
 
 const gpt_partition_type gpt_partition_types[] = {
 	{ "No OS", "Unused / Invalid partition", "00000000-0000-0000-0000-000000000000"},
@@ -290,12 +301,15 @@ int is_protective_mbr(mbr * boot_record) {
 	/* TODO verificar si el MBR es un MBR de proteccion */
 	/* Retorna 1 si el boot record tiene una tabla de particiones
 	con solo una partición definida, de tipo GPT Protective MBR (0xEE) */
+	if( boot_record->partition_table[0].partition_type == MBR_TYPE_GPT)
+		return 1;
 	return 0;
 }
 
 
 int is_valid_gpt_header(gpt_header * hdr) {
 	/* TODO retorna 1 si el encabezado es valido (verificar el valor del atributo signature)*/
+	if( hdr->signature == GPT_HEADER_SIGNATURE)
 	return 0;
 }
 
@@ -353,18 +367,36 @@ char * gpt_decode_partition_name(char name[72]) {
 
 int is_null_descriptor(gpt_partition_descriptor * desc) {
 
-	return 0;
+    char *guid_str = guid_to_str(&desc->partition_type_guid);
+    int result = strcmp(guid_str, "00000000-0000-0000-0000-000000000000") == 0;
+    free(guid_str);
+    return result;
 }
 
 
 
 const gpt_partition_type * get_gpt_partition_type(char * guid_str) {
-
 	/* TODO retornar el tipo de particion de acuerdo con el GUID especificado */
-
+	to_uppercase(guid_str);
+	for (size_t i = 0; i < 256 ; i++){
+		if(strcmp(gpt_partition_types[i].guid, guid_str) == 0)
+			return &gpt_partition_types[i];
+	}
+		
 	//Default: return first element of partition type array
 	return &gpt_partition_types[0];
 }
 
 
-
+void print_gpt_header(gpt_header * desc){
+	printf("GPT Header\n");
+	printf("Revision: 0x%x\n", desc->revision);
+	printf("First usable lba: %d\n", desc->first_usable_lba);
+	printf("Last usable lba: %d\n", desc->last_usable_lba);
+	printf("Disk GUID: %s\n", guid_to_str(&desc->disk_guid));
+	printf("Partition entry lba: %d\n", desc->partition_entry_lba);
+	printf("Number of partition entries: %d\n", desc->num_partition_entries);
+	printf("Size of partition entry: %d\n", desc->size_partition_entry);
+	printf("Total of a partition descriptor: %d\n", desc->num_partition_entries/(SECTOR_SIZE/desc->size_partition_entry));
+	printf("Size of a partition descriptor: %d\n", desc->size_partition_entry);
+}

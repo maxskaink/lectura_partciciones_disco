@@ -17,8 +17,6 @@
 #include "mbr.h"
 #include "gpt.h"
 
-/*** @brief Cantidad de bytes de un sector en disco */
-#define SECTOR_SIZE 512
 
 /**
 * @brief Hex dumps a buffer
@@ -78,15 +76,50 @@ int main(int argc, char *argv[]) {
 
 	print_mbr_partition_descriptor(boot_record.partition_table);
 
-	hex_dump((char*)&boot_record, sizeof(mbr));
+	// hex_dump((char*)&boot_record, sizeof(mbr));
 	// 4. Si el esquema de paricionado es MBR: terminado
+	if( flag_is_mbr )
+		exit(EXIT_SUCCESS);
 	// PRE: El esquema de particionado es GPT
 	// 5 . Imprimir la tabla de particiones GPT
 	// 5.1 Leer el segundo sector del disco (PTHDR - Encabezado de la tabla de particiones GPT)
-	// Em el PTHDR se encuentra la cantidad de descriptores de la tabla
+	gpt_header second_sector_gpt_header;;
+	if( read_lba_sector(disk, 1, (char*)&second_sector_gpt_header) == 0){
+		fprintf(stderr, "Unable to open device %s\n", disk);
+		exit(EXIT_FAILURE); 
+	}
+	if( is_valid_gpt_header(&second_sector_gpt_header) ){
+		fprintf(stderr, "Invalid GPT header\n");
+		exit(EXIT_FAILURE);
+	}
+	// En el PTHDR se encuentra la cantidad de descriptores de la tabla
+	print_gpt_header(&second_sector_gpt_header);
+	int cantidad_descriptores = second_sector_gpt_header.num_partition_entries;
+	int cantidad_sectores_descriptores = cantidad_descriptores/4;
 	// 5.2 Reptetir:
-	// 5.2.1 Leer un sector que contiene descriptores de particion GPT
-	// 5.2.2 Para cada descriptor leido, imprimir su informacion
+	printf("Start LBA       End LBA         Size              Type                           Partition Name\n");
+	printf("--------------- --------------- ---------------   ------------------------------ -----------------------------------\n");
+	for(size_t i=0; i< cantidad_sectores_descriptores;i++){
+		// 5.2.1 Leer un sector que contiene descriptores de particion GPT
+		gpt_partition_descriptor partition_descriptor[4];
+		if( read_lba_sector(disk, 2 + i, (char*)&partition_descriptor) == 0){
+			fprintf(stderr, "Unable to open device %s\n", disk);
+			exit(EXIT_FAILURE); 
+		}
+		// 5.2.2 Para cada descriptor leido, imprimir su informacion
+		for(size_t j=0; j<4; j++){
+			if(is_null_descriptor(&partition_descriptor[j]))
+				continue;
+			printf("%15u %-15u %15u %30s %35s\n", 
+				partition_descriptor[j].starting_lba, 
+				partition_descriptor[j].ending_lba, 
+				partition_descriptor[j].ending_lba - partition_descriptor[j].starting_lba, 
+				get_gpt_partition_type(guid_to_str(&partition_descriptor[j].partition_type_guid))->description, 
+				gpt_decode_partition_name(partition_descriptor[j].partition_name)
+			);
+		}
+	}
+	printf("----------- ---------- --------- ------------------ ----------------------------------\n");
 
 	return 0;
 }

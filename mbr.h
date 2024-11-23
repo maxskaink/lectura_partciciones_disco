@@ -18,6 +18,9 @@
 /** @brief Longitud maxima del texto para el tipo de particion */
 #define TYPE_NAME_LEN 256
 
+/*** @brief Cantidad de bytes de un sector en disco */
+#define SECTOR_SIZE 512
+
 /** @brief Partition descriptor - MBR */
 typedef struct {
 	/* TODO definir los atributos para la estructura de un descriptor de particion MBR */
