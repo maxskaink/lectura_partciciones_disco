@@ -97,8 +97,8 @@ int main(int argc, char *argv[]) {
 	int cantidad_descriptores = second_sector_gpt_header.num_partition_entries;
 	int cantidad_sectores_descriptores = cantidad_descriptores/4;
 	// 5.2 Reptetir:
-	printf("Start LBA       End LBA         Size              Type                           Partition Name\n");
-	printf("--------------- --------------- ---------------   ------------------------------ -----------------------------------\n");
+	printf("Start LBA       End LBA         Size              Type                                Partition Name\n");
+	printf("--------------- --------------- ---------------   ----------------------------------- -----------------------------------\n");
 	for(size_t i=0; i< cantidad_sectores_descriptores;i++){
 		// 5.2.1 Leer un sector que contiene descriptores de particion GPT
 		gpt_partition_descriptor partition_descriptor[4];
@@ -110,16 +110,16 @@ int main(int argc, char *argv[]) {
 		for(size_t j=0; j<4; j++){
 			if(is_null_descriptor(&partition_descriptor[j]))
 				continue;
-			printf("%15u %-15u %15u %30s %35s\n", 
+			printf("%15u %-15u %15llu %35s %35s\n", 
 				partition_descriptor[j].starting_lba, 
 				partition_descriptor[j].ending_lba, 
-				partition_descriptor[j].ending_lba - partition_descriptor[j].starting_lba, 
+				((partition_descriptor[j].ending_lba - partition_descriptor[j].starting_lba)*SECTOR_SIZE), 
 				get_gpt_partition_type(guid_to_str(&partition_descriptor[j].partition_type_guid))->description, 
 				gpt_decode_partition_name(partition_descriptor[j].partition_name)
 			);
 		}
 	}
-	printf("----------- ---------- --------- ------------------ ----------------------------------\n");
+	printf("--------------- --------------- ---------------   ----------------------------------- -----------------------------------\n");
 
 	return 0;
 }
