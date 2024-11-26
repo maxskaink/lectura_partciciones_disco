@@ -1,6 +1,8 @@
 /**
  * @file
  * @author Erwin Meza Vega <emezav@unicauca.edu.co>
+ * @author Miguel Angel Calambas <mangelcvivas@unicauca.edu.co>abort
+ * @author Esteban Santiago Escadon Causaya <estebanescandon@unicauca.edu.co>
  * @copyright MIT License
 */
 

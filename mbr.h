@@ -1,5 +1,7 @@
 /**
 * @file
+* @author Miguel Angel Calambas <mangelcvivas@unicauca.edu.co>abort
+* @author Esteban Santiago Escadon Causaya <estebanescandon@unicauca.edu.co>
 * @brief Definiciones para discos inicializados con esquema BR
 */
 
