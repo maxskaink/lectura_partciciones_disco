@@ -261,37 +261,54 @@ const char * mbr_partition_types[256] = {
 	"XENIX bad block table", //FF
 };
 
-int is_mbr(mbr * boot_record) {
-	/* TODO verificar si la verificacion es suficiente. */
-	if( boot_record->partition_table[0].partition_type == MBR_TYPE_GPT)
-		return 0;
+int is_null(char * buffer, size_t size){
+	/* Verifica si un buffer es nulo */
+	for (size_t i = 0; i < size; i++)
+		if(buffer[i] != 0x00)
+			return 0;
+	
 	return 1;
+}
+
+int is_null_mbr_partition_descriptor(mbr_partition_descriptor * partition_descriptor){
+	/* Verifica si un descriptor de particion MBR es nulo */
+	if( is_null((char*)partition_descriptor, sizeof(mbr_partition_descriptor)) )
+		return 1;
+	return 0;
+}
+
+int is_mbr(mbr * boot_record) {
+	/* Verifica si la signature del mbr es 0xAA55 */
+	if( boot_record->signature == MBR_SIGNATURE)
+		return 1;
+	return 0;
 }
 
 
 void mbr_partition_type(unsigned char type, char buf[TYPE_NAME_LEN]) {
-	/* TODO verificar que sea correcta la asignacion */
+	/* Guarda en el buffer el tipo de particion */
 	snprintf(buf, TYPE_NAME_LEN, "%s", mbr_partition_types[type]);
 }
 
 void print_mbr_partition_descriptor(mbr_partition_descriptor * partition_descriptor){
 	/* TODO Mirar si es necesario tener en cuenta la informacion CHS */
 	printf("MBR Partition Table\n");
-	printf("Start LBA    End LBA     Type\n");
-	printf("------------ ----------- -----------------\n");
+	printf("Start LBA       End LBA         Size             Type\n");
+	printf("--------------- --------------- ---------------  --------------------\n");
 	for (size_t i = 0; i < 4; i++)
 	{
         if (partition_descriptor[i].size_in_LBA == 0)
             continue; // Saltar particiones no usadas
 
-        unsigned int start_lba = partition_descriptor[i].starting_LBA;
+		unsigned int start_lba = partition_descriptor[i].starting_LBA;
         unsigned int end_lba = start_lba + partition_descriptor[i].size_in_LBA - 1;
-
+		unsigned long long size_bytes = (partition_descriptor[i].size_in_LBA) * (unsigned long long)(SECTOR_SIZE); 
 		char type[TYPE_NAME_LEN];
 		mbr_partition_type(partition_descriptor[i].partition_type, type);
 
-	    printf("%12u %11u %s\n", start_lba, end_lba, type);
+	    printf("%15llu %15llu %15llu %20s\n", start_lba, end_lba, size_bytes ,type);
 
+		
+	printf("--------------- --------------- ---------------  --------------------\n");
 	}
-	printf("------------ ----------- -----------------\n");	
 }

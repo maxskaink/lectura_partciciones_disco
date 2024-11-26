@@ -100,7 +100,7 @@ int is_valid_gpt_header(gpt_header * hdr);
 * @param desc Descriptor
 * @return 1 if the descriptor is null (partition_type_guid = 0), 0 otherwise.
 */
-int is_null_descriptor(gpt_partition_descriptor * desc);
+int is_null_descriptor_gpt(gpt_partition_descriptor * desc);
 
 
 /**

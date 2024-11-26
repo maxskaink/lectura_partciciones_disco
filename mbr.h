@@ -43,10 +43,26 @@ typedef struct {
 	
 }__attribute__((packed)) mbr;
 
+
+/**
+ * @brief Checks if a buffer is null
+ * @param buffer Buffer to check
+ * @param size Size of the buffer
+ * @return 1 if the buffer is null, 0 otherwise
+ */
+int is_null(char * buffer, size_t size);
+
+/**
+ * @brief Checks if a partition descriptor is null.
+ * @param partition_descriptor Partition descriptor to check
+ * @return 1 if the partition descriptor is null, 0 otherwise
+ */
+int is_null_mbr_partition_descriptor(mbr_partition_descriptor * partition_descriptor);
+
 /**
 * @brief Checks if a bootsector is a MBR.
 * @param boot_record Bootsector read in memory]
-* @return 0 If the bootsector is a Protective MBR, 1 otherwise.
+* @return 1 if the bootsector is a mbr ¿, 0 in other way.
 */
 int is_mbr(mbr * boot_record);
 

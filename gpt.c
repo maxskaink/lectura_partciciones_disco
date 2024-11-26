@@ -19,7 +19,6 @@ void to_uppercase(char *str) {
     }
 }
 
-
 const gpt_partition_type gpt_partition_types[] = {
 	{ "No OS", "Unused / Invalid partition", "00000000-0000-0000-0000-000000000000"},
 	{ "Ceph", "Multipath block write-ahead log", "01B41E1B-002A-453C-9F17-88793989FF8F"},
@@ -296,23 +295,28 @@ const gpt_partition_type gpt_partition_types[] = {
 	{0, 0, 0}
 };
 
-
 int is_protective_mbr(mbr * boot_record) {
-	/* TODO verificar si el MBR es un MBR de proteccion */
+	//Verificar si es mbr (is_mbr) de mbr.h
+	if(!is_mbr(boot_record))
+		return 0;
 	/* Retorna 1 si el boot record tiene una tabla de particiones
 	con solo una partición definida, de tipo GPT Protective MBR (0xEE) */
-	if( boot_record->partition_table[0].partition_type == MBR_TYPE_GPT)
-		return 1;
-	return 0;
+	if(!boot_record->partition_table[0].partition_type == MBR_TYPE_GPT)
+		return 0;
+	if (!is_null_mbr_partition_descriptor(&boot_record->partition_table[1]) ||
+		!is_null_mbr_partition_descriptor(&boot_record->partition_table[2]) ||
+		!is_null_mbr_partition_descriptor(&boot_record->partition_table[3])
+	)
+		return 0;
+		
+	return 1;
 }
-
 
 int is_valid_gpt_header(gpt_header * hdr) {
 	/* TODO retorna 1 si el encabezado es valido (verificar el valor del atributo signature)*/
 	if( hdr->signature == GPT_HEADER_SIGNATURE)
 	return 0;
 }
-
 
 char * guid_to_str(guid * buf) {
 
@@ -364,16 +368,10 @@ char * gpt_decode_partition_name(char name[72]) {
 	return ptr;
 }
 
+int is_null_descriptor_gpt(gpt_partition_descriptor * desc) {
 
-int is_null_descriptor(gpt_partition_descriptor * desc) {
-
-    char *guid_str = guid_to_str(&desc->partition_type_guid);
-    int result = strcmp(guid_str, "00000000-0000-0000-0000-000000000000") == 0;
-    free(guid_str);
-    return result;
+    return is_null( (char*)&desc->partition_type_guid, sizeof(guid) );
 }
-
-
 
 const gpt_partition_type * get_gpt_partition_type(char * guid_str) {
 	/* TODO retornar el tipo de particion de acuerdo con el GUID especificado */
@@ -386,7 +384,6 @@ const gpt_partition_type * get_gpt_partition_type(char * guid_str) {
 	//Default: return first element of partition type array
 	return &gpt_partition_types[0];
 }
-
 
 void print_gpt_header(gpt_header * desc){
 	printf("GPT Header\n");

@@ -67,18 +67,17 @@ int main(int argc, char *argv[]) {
 	}
 	// PRE: Se pudo leer el primer secto del disco
 	// 3. Imprimmir la tabla de particiones del MBR leido!
-	unsigned int flag_is_mbr = is_mbr(&boot_record);
-
-	if( flag_is_mbr )
-		printf("Disk initialized as MBR\n");
-	else 
-		printf("Disk initialized as GPT\n");
-
 	print_mbr_partition_descriptor(boot_record.partition_table);
-
-	// hex_dump((char*)&boot_record, sizeof(mbr));
+	//hex_dump((char*)&boot_record, sizeof(mbr));
 	// 4. Si el esquema de paricionado es MBR: terminado
-	if( flag_is_mbr )
+	unsigned int flag_is_protective_mbr = is_protective_mbr(&boot_record);
+
+	if( flag_is_protective_mbr )
+		printf("Disk initialized as GPT\n");
+	else 
+		printf("Disk initialized as MBR\n");
+
+	if( !flag_is_protective_mbr )
 		exit(EXIT_SUCCESS);
 	// PRE: El esquema de particionado es GPT
 	// 5 . Imprimir la tabla de particiones GPT
@@ -88,6 +87,7 @@ int main(int argc, char *argv[]) {
 		fprintf(stderr, "Unable to open device %s\n", disk);
 		exit(EXIT_FAILURE); 
 	}
+	//Validar que sesa valido el encabezado GPT
 	if( is_valid_gpt_header(&second_sector_gpt_header) ){
 		fprintf(stderr, "Invalid GPT header\n");
 		exit(EXIT_FAILURE);
@@ -108,12 +108,12 @@ int main(int argc, char *argv[]) {
 		}
 		// 5.2.2 Para cada descriptor leido, imprimir su informacion
 		for(size_t j=0; j<4; j++){
-			if(is_null_descriptor(&partition_descriptor[j]))
+			if(is_null_descriptor_gpt(&partition_descriptor[j]))
 				continue;
-			printf("%15u %-15u %15llu %35s %35s\n", 
+			printf("%15u %15u %15llu %35s %35s\n", 
 				partition_descriptor[j].starting_lba, 
 				partition_descriptor[j].ending_lba, 
-				((partition_descriptor[j].ending_lba - partition_descriptor[j].starting_lba)*SECTOR_SIZE), 
+				((partition_descriptor[j].ending_lba - partition_descriptor[j].starting_lba)*(unsigned long long )(SECTOR_SIZE)), 
 				get_gpt_partition_type(guid_to_str(&partition_descriptor[j].partition_type_guid))->description, 
 				gpt_decode_partition_name(partition_descriptor[j].partition_name)
 			);
