@@ -4,6 +4,7 @@
 # Executable files
 *.out
 *.exe
+listpart
 
 # IDE specific files
 .vscode/
